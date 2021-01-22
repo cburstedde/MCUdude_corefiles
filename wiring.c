@@ -392,10 +392,17 @@ unsigned long micros() {
 #endif // 0
 }
 
+/* Delay a given number of milliseconds.
+   Relies on micros() for accuracy. */
 void delay(unsigned long ms)
 {
   unsigned long start = micros();
+#ifdef CORRECT_EXACT_MICROS
+  // subtract one execution of micros() and call overhead, estimate 180 cycles
+  start -= ((180UL * 1000UL * 1000UL) / F_CPU);
+#endif
 
+  // busy wait in a loop
   while (ms > 0UL) {
     yield();
     while (ms > 0UL && (micros() - start) >= 1000UL) {
